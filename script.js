@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const includeVeg = document.getElementById('include-veg');
     const includeFruit = document.getElementById('include-fruit');
     
+    const manualListContainer = document.getElementById('manual-list');
+    const manualNameInput = document.getElementById('manual-name');
+    const manualQtyInput = document.getElementById('manual-qty');
+    const addManualBtn = document.getElementById('add-manual-btn');
+
     const shopNameInput = document.getElementById('shop-name');
     const orderDateInput = document.getElementById('order-date');
     const extraNotesInput = document.getElementById('extra-notes');
@@ -176,6 +181,48 @@ document.addEventListener('DOMContentLoaded', () => {
         fruit: {}
     };
 
+    let manualItemsList = [];
+
+    function renderManualList() {
+        manualListContainer.innerHTML = '';
+        manualItemsList.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'item-info';
+            const label = document.createElement('label');
+            label.innerText = item.name;
+            infoDiv.appendChild(label);
+            
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'stock-input-group';
+            const qtySpan = document.createElement('span');
+            qtySpan.innerText = `Qty: ${item.qty}`;
+            qtySpan.className = 'target-badge';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '×';
+            removeBtn.style.background = 'none';
+            removeBtn.style.border = 'none';
+            removeBtn.style.color = '#ef4444';
+            removeBtn.style.fontSize = '1.5rem';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.addEventListener('click', () => {
+                manualItemsList = manualItemsList.filter(i => i.id !== item.id);
+                renderManualList();
+                updatePreview();
+            });
+            
+            inputGroup.appendChild(qtySpan);
+            inputGroup.appendChild(removeBtn);
+            
+            div.appendChild(infoDiv);
+            div.appendChild(inputGroup);
+            manualListContainer.appendChild(div);
+        });
+    }
+
     function renderMainList(items, container, category) {
         container.innerHTML = '';
         let hasVisibleItems = false;
@@ -296,6 +343,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        addManualBtn.addEventListener('click', () => {
+            const name = manualNameInput.value.trim();
+            const qty = manualQtyInput.value.trim();
+            if (name && qty) {
+                manualItemsList.push({ id: Date.now(), name, qty });
+                manualNameInput.value = '';
+                manualQtyInput.value = '';
+                renderManualList();
+                updatePreview();
+            }
+        });
+
         updatePreview();
     }
 
@@ -380,6 +439,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fruitText) {
                 msg += "*Fruits*\n" + fruitText + "\n";
             }
+        }
+        
+        // Custom Manual Items
+        if (manualItemsList.length > 0) {
+            let manualText = "";
+            manualItemsList.forEach(item => {
+                manualText += `${item.name} - ${item.qty}\n`;
+                hasItems = true;
+            });
+            msg += "*Custom Items*\n" + manualText + "\n";
         }
 
         if (!hasItems) {

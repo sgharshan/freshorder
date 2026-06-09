@@ -292,6 +292,38 @@ input:focus, textarea:focus {
     transform: scale(0.98);
 }
 
+.secondary-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--primary);
+    padding: 0.8rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.secondary-btn:hover {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.manual-entry-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.manual-entry-group input[type="text"] {
+    flex: 2;
+}
+.manual-entry-group input[type="number"] {
+    flex: 1;
+}
+
 /* Modal optimized for mobile */
 .modal {
     display: none;
