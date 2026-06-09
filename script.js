@@ -1,0 +1,473 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const milkListContainer = document.getElementById('milk-list');
+    const breadListContainer = document.getElementById('bread-list');
+    const vegListContainer = document.getElementById('veg-list');
+    const fruitListContainer = document.getElementById('fruit-list');
+    
+    const settingsMilkList = document.getElementById('settings-milk-list');
+    const settingsBreadList = document.getElementById('settings-bread-list');
+    const settingsVegList = document.getElementById('settings-veg-list');
+    const settingsFruitList = document.getElementById('settings-fruit-list');
+    
+    const includeMilk = document.getElementById('include-milk');
+    const includeBread = document.getElementById('include-bread');
+    const includeVeg = document.getElementById('include-veg');
+    const includeFruit = document.getElementById('include-fruit');
+    
+    const shopNameInput = document.getElementById('shop-name');
+    const orderDateInput = document.getElementById('order-date');
+    const extraNotesInput = document.getElementById('extra-notes');
+    const messagePreview = document.getElementById('message-preview');
+    const copyBtn = document.getElementById('copy-btn');
+    const sendBtn = document.getElementById('send-btn');
+
+    const modal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('open-settings');
+    const closeSettingsBtn = document.getElementById('close-settings');
+    const saveSettingsBtn = document.getElementById('save-settings');
+
+    const milkItems = [
+        { name: "2litr green", hint: "Semi skimmed" },
+        { name: "2litr blue", hint: "Whole milk" },
+        { name: "2litr red", hint: "Skimmed" },
+        { name: "1litr Green", hint: "Semi skimmed" },
+        { name: "1litr Blue", hint: "Whole milk" },
+        { name: "1litr red", hint: "Skimmed" },
+        { name: "Pint Blue", hint: "Whole milk" },
+        { name: "Pint green", hint: "Semi skimmed" },
+        { name: "Pint red", hint: "Skimmed" }
+    ];
+
+    const breadItems = [
+        { name: "Hovis Medium", hint: "" },
+        { name: "Hovis thick", hint: "" },
+        { name: "BOB", hint: "Best of both" },
+        { name: "Wholemeal", hint: "" }
+    ];
+
+    const vegItems = [
+        { name: "Carrots - Heritage mixed", hint: "" },
+        { name: "Carrots 500g", hint: "" },
+        { name: "Coz Lettuce", hint: "" },
+        { name: "Mushrooms - wild assortment 250g", hint: "" },
+        { name: "POTATOES - 25KG WASHED - ELECTRA / MARFONA", hint: "" },
+        { name: "Potatoes - salad / midi 400g", hint: "" },
+        { name: "Potatoes 10kg", hint: "" },
+        { name: "Potatoes 2kg - NEW SEASON", hint: "" },
+        { name: "Potatoes 5kg", hint: "" },
+        { name: "Potatoes baking 4 pack", hint: "" },
+        { name: "Potatoes Salad New season 400g", hint: "" },
+        { name: "Purple Cauliflower - NEW SEASON", hint: "" },
+        { name: "SALAD - Radishes", hint: "" },
+        { name: "SALAD - Vine Tomatoes 4 pack", hint: "" },
+        { name: "Stew pack - LARGE", hint: "" },
+        { name: "Bok Choi", hint: "" },
+        { name: "Sweetcorn 2 pack", hint: "" },
+        { name: "Asparagus", hint: "" },
+        { name: "Aubergine", hint: "" },
+        { name: "Broccoli - purple sprouting 200g", hint: "" },
+        { name: "Broccoli and Cauli Florets", hint: "" },
+        { name: "Broccoli Florets", hint: "" },
+        { name: "Broccoli per head", hint: "" },
+        { name: "Butternut squash", hint: "" },
+        { name: "Cabbage Red - EACH", hint: "" },
+        { name: "Cabbage Savoy - NEW SEASON", hint: "" },
+        { name: "Cabbage White large (approx 1.5-2KG)", hint: "" },
+        { name: "Cauliflower", hint: "" },
+        { name: "Cauliflower florets", hint: "" },
+        { name: "Celeriac", hint: "" },
+        { name: "Chillies Mixed 50g", hint: "" },
+        { name: "Courgettes 2 pack", hint: "" },
+        { name: "Fennel 500g", hint: "" },
+        { name: "Fine beans 150g", hint: "" },
+        { name: "Garlic 2 pack", hint: "" },
+        { name: "Ginger", hint: "" },
+        { name: "Hispi Cabbage", hint: "" },
+        { name: "Kale", hint: "" },
+        { name: "Leeks 500g", hint: "" },
+        { name: "Mange tout 150g", hint: "" },
+        { name: "mixed chantney carrots 500g", hint: "" },
+        { name: "Mushrooms 250g - UK", hint: "" },
+        { name: "Mushrooms chestnut 250g", hint: "" },
+        { name: "Mushrooms Flat", hint: "" },
+        { name: "Onions 500G pack", hint: "" },
+        { name: "Onions Spanish 2 pack", hint: "" },
+        { name: "Onions Red 500G pack", hint: "" },
+        { name: "Parsnips 500g", hint: "" },
+        { name: "Rainbow chard", hint: "" },
+        { name: "Spinach", hint: "" },
+        { name: "Spring Cabbage", hint: "" },
+        { name: "Stew pack", hint: "" },
+        { name: "Sugar snaps 150g", hint: "" },
+        { name: "Swede", hint: "" },
+        { name: "Sweet potato 500g", hint: "" },
+        { name: "Tenderstem Broccoli", hint: "" },
+        { name: "white cabbage small (1kg approx)", hint: "" },
+        { name: "WS - baking potatoes - box of 50", hint: "" }
+    ];
+
+    const fruitItems = [
+        { name: "Apples: Bramley 2 pack", hint: "" },
+        { name: "Apples: Golden Delicious 2 pack", hint: "" },
+        { name: "Apples: Green 2 pack", hint: "" },
+        { name: "Apples: Green 4 pack", hint: "" },
+        { name: "Apples: Green 8 pack", hint: "" },
+        { name: "Apples: Mixed 4 pack", hint: "" },
+        { name: "Apples: Mixed 8 pack", hint: "" },
+        { name: "Apples: Red 2 pack", hint: "" },
+        { name: "Apples: Red 4 pack", hint: "" },
+        { name: "Apples: Red 8 pack", hint: "" },
+        { name: "Avocado each", hint: "" },
+        { name: "Bananas 3 pack", hint: "" },
+        { name: "Blueberries", hint: "" },
+        { name: "Dates 250g", hint: "" },
+        { name: "Grapefruit 2 pack", hint: "" },
+        { name: "Grapes Black 400g", hint: "" },
+        { name: "Grapes Green 200g", hint: "" },
+        { name: "Grapes Green 400g", hint: "" },
+        { name: "Grapes mixed 400g", hint: "" },
+        { name: "Grapes: Black 200g", hint: "" },
+        { name: "Kiwi 3 pack", hint: "" },
+        { name: "Lemons 2 pack", hint: "" },
+        { name: "Lemons each", hint: "" },
+        { name: "Limes 2 pack", hint: "" },
+        { name: "Limes each", hint: "" },
+        { name: "Mango each", hint: "" },
+        { name: "Melon Galia", hint: "" },
+        { name: "Melon Honeydew", hint: "" },
+        { name: "Mixed fruit pack", hint: "" },
+        { name: "Oranges 2 pack", hint: "" },
+        { name: "Oranges 5 pack", hint: "" },
+        { name: "Plums 400g", hint: "" },
+        { name: "Raspberries", hint: "" },
+        { name: "Rhubarb", hint: "" },
+        { name: "Satsumas 4 pack", hint: "" },
+        { name: "Strawberries 227g", hint: "" },
+        { name: "Strawberry - 250G -- LOCAL", hint: "" },
+        { name: "Watermelon", hint: "" },
+        { name: "apples - 4 pack cox apples", hint: "" },
+        { name: "Nadocotts 4 pack", hint: "" },
+        { name: "Grapes mixed 200g", hint: "" },
+        { name: "Pineapple", hint: "" },
+        { name: "pears 2pk - NEW SEASON", hint: "" },
+        { name: "Oranges Med. 4PK", hint: "" },
+        { name: "Bananas -Fyffes 5 pack (700g - 1000g)", hint: "" },
+        { name: "POMEGRANATE - EACH", hint: "" },
+        { name: "RED CURRANTS - PER PUNNET", hint: "" },
+        { name: "oranges small 6pack", hint: "" },
+        { name: "APPLES - english new season royal gala (60-80) - KG PACKS", hint: "" },
+        { name: "FIGS - 250g pack", hint: "" }
+    ];
+
+    // Load presets
+    let targetPresets = JSON.parse(localStorage.getItem('freshOrderTargets')) || {};
+    
+    // Init presets if empty
+    [...milkItems, ...breadItems, ...vegItems, ...fruitItems].forEach(item => {
+        if (targetPresets[item.name] === undefined) {
+            targetPresets[item.name] = 0; // Default target
+        }
+    });
+
+    const stockState = {
+        milk: {},
+        bread: {},
+        veg: {},
+        fruit: {}
+    };
+
+    function renderMainList(items, container, category) {
+        container.innerHTML = '';
+        let hasVisibleItems = false;
+
+        items.forEach(item => {
+            const target = targetPresets[item.name];
+            
+            // Only display items that have a target set greater than 0
+            if (!target || target <= 0) return;
+
+            hasVisibleItems = true;
+            stockState[category][item.name] = ''; // init empty
+
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'item-info';
+            
+            const label = document.createElement('label');
+            label.innerText = item.name;
+            infoDiv.appendChild(label);
+            
+            if (item.hint) {
+                const hint = document.createElement('span');
+                hint.className = 'item-hint';
+                hint.innerText = item.hint;
+                infoDiv.appendChild(hint);
+            }
+            
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'stock-input-group';
+            
+            const badge = document.createElement('span');
+            badge.className = 'target-badge';
+            badge.innerText = `Target: ${target}`;
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.placeholder = 'Stock';
+            input.inputMode = 'numeric';
+            input.pattern = '[0-9]*';
+            input.addEventListener('input', (e) => {
+                stockState[category][item.name] = e.target.value;
+                updatePreview();
+            });
+            
+            inputGroup.appendChild(badge);
+            inputGroup.appendChild(input);
+            
+            div.appendChild(infoDiv);
+            div.appendChild(inputGroup);
+            container.appendChild(div);
+        });
+
+        if (!hasVisibleItems) {
+            container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; padding: 1rem 0; text-align: center;">No items selected. Set a target in ⚙️ Settings to track items here.</p>';
+        }
+    }
+
+    function renderSettingsList(items, container) {
+        container.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'item-info';
+            
+            const label = document.createElement('label');
+            label.innerText = item.name;
+            infoDiv.appendChild(label);
+            
+            if (item.hint) {
+                const hint = document.createElement('span');
+                hint.className = 'item-hint';
+                hint.innerText = item.hint;
+                infoDiv.appendChild(hint);
+            }
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.inputMode = 'numeric';
+            input.pattern = '[0-9]*';
+            input.value = targetPresets[item.name];
+            input.dataset.item = item.name;
+            input.className = 'settings-input';
+            
+            div.appendChild(infoDiv);
+            div.appendChild(input);
+            container.appendChild(div);
+        });
+    }
+
+    function init() {
+        const today = new Date();
+        orderDateInput.valueAsDate = today;
+
+        renderMainList(milkItems, milkListContainer, 'milk');
+        renderMainList(breadItems, breadListContainer, 'bread');
+        renderMainList(vegItems, vegListContainer, 'veg');
+        renderMainList(fruitItems, fruitListContainer, 'fruit');
+        
+        renderSettingsList(milkItems, settingsMilkList);
+        renderSettingsList(breadItems, settingsBreadList);
+        renderSettingsList(vegItems, settingsVegList);
+        renderSettingsList(fruitItems, settingsFruitList);
+        
+        [includeMilk, includeBread, includeVeg, includeFruit].forEach(cb => {
+            if(cb) {
+                cb.addEventListener('change', (e) => {
+                    const listId = e.target.id.replace('include-', '') + '-list';
+                    document.getElementById(listId).style.display = e.target.checked ? 'block' : 'none';
+                    updatePreview();
+                });
+            }
+        });
+
+        updatePreview();
+    }
+
+    function calculateOrder(itemName, category) {
+        const target = parseInt(targetPresets[itemName]) || 0;
+        const stockInput = stockState[category][itemName];
+        
+        if (target === 0) return 0; // If target is 0, we don't want to order it
+        
+        const stock = stockInput === '' ? 0 : parseInt(stockInput) || 0;
+        const order = target - stock;
+        
+        return order > 0 ? order : 0;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const d = new Date(dateString);
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function generateMessage() {
+        let msg = "Hi mate ,\n\n";
+        
+        let hasItems = false;
+
+        // Milk
+        if (includeMilk.checked) {
+            let milkText = "";
+            milkItems.forEach(item => {
+                const orderQty = calculateOrder(item.name, 'milk');
+                if (orderQty > 0) {
+                    milkText += `${item.name} - ${orderQty}\n`;
+                    hasItems = true;
+                }
+            });
+            if (milkText) {
+                msg += "*Milk*\n" + milkText + "\n";
+            }
+        }
+
+        // Bread
+        if (includeBread.checked) {
+            let breadText = "";
+            breadItems.forEach(item => {
+                const orderQty = calculateOrder(item.name, 'bread');
+                if (orderQty > 0) {
+                    breadText += `${item.name} - ${orderQty}\n`;
+                    hasItems = true;
+                }
+            });
+            if (breadText) {
+                msg += "*Bread*\n" + breadText + "\n";
+            }
+        }
+        
+        // Veg
+        if (includeVeg.checked) {
+            let vegText = "";
+            vegItems.forEach(item => {
+                const orderQty = calculateOrder(item.name, 'veg');
+                if (orderQty > 0) {
+                    vegText += `${item.name} - ${orderQty}\n`;
+                    hasItems = true;
+                }
+            });
+            if (vegText) {
+                msg += "*Vegetables*\n" + vegText + "\n";
+            }
+        }
+        
+        // Fruit
+        if (includeFruit.checked) {
+            let fruitText = "";
+            fruitItems.forEach(item => {
+                const orderQty = calculateOrder(item.name, 'fruit');
+                if (orderQty > 0) {
+                    fruitText += `${item.name} - ${orderQty}\n`;
+                    hasItems = true;
+                }
+            });
+            if (fruitText) {
+                msg += "*Fruits*\n" + fruitText + "\n";
+            }
+        }
+
+        if (!hasItems) {
+            return "Based on your targets and current stock, you don't need to order anything!";
+        }
+
+        const shopName = shopNameInput.value.trim();
+        const orderDateStr = orderDateInput.value;
+        const extraNotes = extraNotesInput.value.trim();
+
+        if (shopName || orderDateStr) {
+            const dateFormatted = formatDate(orderDateStr);
+            msg += `Please place this order for ${shopName || '[Shop Name]'} for ${dateFormatted || '[Date]'}\n\n`;
+        }
+
+        if (extraNotes) {
+            msg += `${extraNotes}\n\n`;
+        }
+
+        msg += "Thank you.";
+        
+        return msg;
+    }
+
+    function updatePreview() {
+        messagePreview.value = generateMessage();
+    }
+
+    // Modal logic
+    openSettingsBtn.addEventListener('click', () => {
+        renderSettingsList(milkItems, settingsMilkList);
+        renderSettingsList(breadItems, settingsBreadList);
+        renderSettingsList(vegItems, settingsVegList);
+        renderSettingsList(fruitItems, settingsFruitList);
+        modal.classList.add('active');
+    });
+
+    closeSettingsBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+
+    saveSettingsBtn.addEventListener('click', () => {
+        const inputs = document.querySelectorAll('.settings-input');
+        inputs.forEach(input => {
+            const itemName = input.dataset.item;
+            targetPresets[itemName] = parseInt(input.value) || 0;
+        });
+        
+        localStorage.setItem('freshOrderTargets', JSON.stringify(targetPresets));
+        
+        // Re-render main list to update badges
+        renderMainList(milkItems, milkListContainer, 'milk');
+        renderMainList(breadItems, breadListContainer, 'bread');
+        renderMainList(vegItems, vegListContainer, 'veg');
+        renderMainList(fruitItems, fruitListContainer, 'fruit');
+        updatePreview();
+        
+        modal.classList.remove('active');
+    });
+
+    shopNameInput.addEventListener('input', updatePreview);
+    orderDateInput.addEventListener('input', updatePreview);
+    extraNotesInput.addEventListener('input', updatePreview);
+
+    copyBtn.addEventListener('click', () => {
+        const msg = generateMessage();
+        if(msg.includes("don't need to order anything")) return;
+
+        navigator.clipboard.writeText(msg).then(() => {
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = "Copied! ✓";
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+            }, 2000);
+        });
+    });
+
+    sendBtn.addEventListener('click', () => {
+        const msg = generateMessage();
+        if(msg.includes("don't need to order anything")) {
+            alert("No items to order based on current stock.");
+            return;
+        }
+
+        const encodedMsg = encodeURIComponent(msg);
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMsg}`;
+        window.open(whatsappUrl, '_blank');
+    });
+
+    init();
+});
