@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>FreshOrder - Milk & Bread</title>
     <meta name="description" content="Quickly generate and send your daily milk and bread orders via WhatsApp.">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,6 +31,12 @@
         </header>
 
         <main>
+            <!-- Global Search Filter -->
+            <div class="search-container card" style="padding: 0.5rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.8rem;">
+                <span class="icon" style="font-size: 1.2rem; margin: 0;">🔍</span>
+                <input type="text" id="search-filter" placeholder="Search to quickly find items..." style="border: none; background: transparent; padding: 0.5rem 0; outline: none; box-shadow: none; font-size: 16px; flex: 1;">
+            </div>
+
             <section class="card" id="milk-section">
                 <div class="section-header">
                     <h2><span class="icon">🥛</span> Milk Stock</h2>
@@ -146,7 +155,13 @@
                     <button id="save-new-profile-btn" class="action-btn primary" style="width: auto; padding: 0.5rem 1rem; min-height: unset; border-radius: 8px;">Add</button>
                     <button id="cancel-new-profile-btn" class="action-btn outline" style="width: auto; padding: 0.5rem 1rem; min-height: unset; border-radius: 8px;">Cancel</button>
                 </div>
-                <button id="delete-profile-btn" class="action-btn outline" style="width: 100%; padding: 0.5rem; min-height: unset; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); display: none;">Delete Profile</button>
+                <button id="delete-profile-btn" class="action-btn outline" style="width: 100%; padding: 0.5rem; min-height: unset; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); display: none; margin-bottom: 0.5rem;">Delete Profile</button>
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button id="export-profiles-btn" class="secondary-btn" style="flex: 1; margin: 0; padding: 0.5rem;">Export Backups</button>
+                    <button id="import-profiles-btn" class="secondary-btn" style="flex: 1; margin: 0; padding: 0.5rem;">Import Backups</button>
+                    <input type="file" id="import-profiles-file" accept=".json" style="display: none;">
+                </div>
             </div>
             
             <div class="settings-group">

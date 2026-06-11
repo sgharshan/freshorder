@@ -39,13 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveNewProfileBtn = document.getElementById('save-new-profile-btn');
     const cancelNewProfileBtn = document.getElementById('cancel-new-profile-btn');
     const deleteProfileBtn = document.getElementById('delete-profile-btn');
+    const exportProfilesBtn = document.getElementById('export-profiles-btn');
+    const importProfilesBtn = document.getElementById('import-profiles-btn');
+    const importProfilesFile = document.getElementById('import-profiles-file');
+    const searchFilter = document.getElementById('search-filter');
 
     const milkItems = [
-        { name: "2litr green", hint: "Semi skimmed" },
         { name: "2litr blue", hint: "Whole milk" },
+        { name: "2litr green", hint: "Semi skimmed" },
         { name: "2litr red", hint: "Skimmed" },
-        { name: "1litr Green", hint: "Semi skimmed" },
         { name: "1litr Blue", hint: "Whole milk" },
+        { name: "1litr Green", hint: "Semi skimmed" },
         { name: "1litr red", hint: "Skimmed" },
         { name: "Pint Blue", hint: "Whole milk" },
         { name: "Pint green", hint: "Semi skimmed" },
@@ -409,6 +413,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Global Search Logic
+        if (searchFilter) {
+            searchFilter.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const mainContainers = [milkListContainer, breadListContainer, vegListContainer, fruitListContainer];
+                
+                mainContainers.forEach(container => {
+                    const rows = container.querySelectorAll('.item-row');
+                    rows.forEach(row => {
+                        const name = row.querySelector('label').innerText.toLowerCase();
+                        row.style.display = name.includes(term) ? 'flex' : 'none';
+                    });
+                });
+            });
+        }
+
+        // Accordion Logic for Mobile Space Saving
+        document.querySelectorAll('.section-header h2').forEach(h2 => {
+            h2.classList.add('collapsible-header');
+            const icon = document.createElement('span');
+            icon.className = 'toggle-icon';
+            icon.innerText = '▼';
+            h2.appendChild(icon);
+
+            h2.addEventListener('click', () => {
+                const section = h2.closest('.card');
+                const listDiv = section.querySelector('div[id$="-list"]');
+                if (listDiv) {
+                    const isHidden = listDiv.style.display === 'none';
+                    listDiv.style.display = isHidden ? 'block' : 'none';
+                    icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+                }
+            });
+        });
+
         // Rapid data entry for manual items
         manualNameInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -655,6 +694,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    exportProfilesBtn.addEventListener('click', () => {
+        saveSettingsInputsToProfile(editingProfileId); // Ensure current edits are saved
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profiles, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "freshorder_profiles_backup.json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    });
+
+    importProfilesBtn.addEventListener('click', () => {
+        importProfilesFile.click();
+    });
+
+    importProfilesFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const importedProfiles = JSON.parse(event.target.result);
+                if (typeof importedProfiles === 'object' && importedProfiles !== null) {
+                    profiles = importedProfiles;
+                    localStorage.setItem('freshOrderProfiles', JSON.stringify(profiles));
+                    
+                    if (!profiles[activeProfileId]) {
+                        activeProfileId = Object.keys(profiles)[0] || "default";
+                    }
+                    if(!profiles[activeProfileId]) {
+                         profiles = { "default": { name: "Default / Weekday", targets: {} } };
+                         activeProfileId = "default";
+                    }
+                    
+                    localStorage.setItem('freshOrderActiveProfile', activeProfileId);
+                    editingProfileId = activeProfileId;
+                    targetPresets = getTargetsForProfile(activeProfileId);
+                    
+                    populateProfileSelect();
+                    renderSettingsForProfile(editingProfileId);
+                    
+                    // Update the main UI with imported targets
+                    renderMainList(milkItems, milkListContainer, 'milk');
+                    renderMainList(breadItems, breadListContainer, 'bread');
+                    renderMainList(vegItems, vegListContainer, 'veg');
+                    renderMainList(fruitItems, fruitListContainer, 'fruit');
+                    updatePreview();
+                    
+                    alert('Profiles imported successfully!');
+                } else {
+                    alert('Invalid backup file format.');
+                }
+            } catch (err) {
+                alert('Error reading backup file. Please ensure it is a valid JSON file.');
+            }
+            importProfilesFile.value = ''; // Reset file input
+        };
+        reader.readAsText(file);
+    });
+
     shopNameInput.addEventListener('input', () => { updatePreview(); saveDraft(); });
     orderDateInput.addEventListener('input', updatePreview);
     extraNotesInput.addEventListener('input', () => { updatePreview(); saveDraft(); });
@@ -713,6 +813,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     cb.click(); // Triggers event listener to update visibility
                 }
             });
+
+            if (searchFilter) {
+                searchFilter.value = '';
+                searchFilter.dispatchEvent(new Event('input')); // Reset search view
+            }
 
             localStorage.removeItem('freshOrderDraft');
             window.scrollTo({ top: 0, behavior: 'smooth' });
