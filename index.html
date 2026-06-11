@@ -109,16 +109,19 @@
             <section class="card" id="preview-section">
                 <h2><span class="icon">📱</span> Message Preview (Calculated)</h2>
                 <textarea id="message-preview" readonly placeholder="Your generated order will appear here..."></textarea>
-                
-                <div class="action-buttons">
-                    <button id="copy-btn" class="action-btn outline">Copy Text</button>
-                    <button id="send-btn" class="action-btn primary">
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="wa-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                        Send on WhatsApp
-                    </button>
-                </div>
             </section>
         </main>
+    </div>
+
+    <div class="sticky-footer">
+        <div class="container action-buttons-row">
+            <button id="clear-btn" class="action-btn outline icon-only" title="Clear / New Order" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">🗑️</button>
+            <button id="copy-btn" class="action-btn outline">Copy Text</button>
+            <button id="send-btn" class="action-btn primary">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="wa-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Send Order
+            </button>
+        </div>
     </div>
 
     <!-- Settings Modal -->
@@ -131,6 +134,20 @@
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
                 Set your desired target stock levels. When you input your current stock, the app will automatically order enough to reach these targets.
             </p>
+            
+            <div class="preset-management" style="margin-bottom: 1.5rem; background: var(--input-bg); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                <label for="preset-profile" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Preset Profile</label>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <select id="preset-profile" style="flex: 1; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem; font-family: inherit; font-size: 16px;"></select>
+                    <button id="new-profile-btn" class="secondary-btn" style="width: auto; margin: 0; padding: 0.5rem 1rem;">New</button>
+                </div>
+                <div id="new-profile-group" style="display: none; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="text" id="new-profile-name" placeholder="e.g. Weekend Order" style="flex: 1; padding: 0.5rem; font-size: 16px;">
+                    <button id="save-new-profile-btn" class="action-btn primary" style="width: auto; padding: 0.5rem 1rem; min-height: unset; border-radius: 8px;">Add</button>
+                    <button id="cancel-new-profile-btn" class="action-btn outline" style="width: auto; padding: 0.5rem 1rem; min-height: unset; border-radius: 8px;">Cancel</button>
+                </div>
+                <button id="delete-profile-btn" class="action-btn outline" style="width: 100%; padding: 0.5rem; min-height: unset; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); display: none;">Delete Profile</button>
+            </div>
             
             <div class="settings-group">
                 <h3>Milk Targets</h3>

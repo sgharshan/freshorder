@@ -25,11 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const messagePreview = document.getElementById('message-preview');
     const copyBtn = document.getElementById('copy-btn');
     const sendBtn = document.getElementById('send-btn');
+    const clearBtn = document.getElementById('clear-btn');
 
     const modal = document.getElementById('settings-modal');
     const openSettingsBtn = document.getElementById('open-settings');
     const closeSettingsBtn = document.getElementById('close-settings');
     const saveSettingsBtn = document.getElementById('save-settings');
+    
+    const presetProfileSelect = document.getElementById('preset-profile');
+    const newProfileBtn = document.getElementById('new-profile-btn');
+    const newProfileGroup = document.getElementById('new-profile-group');
+    const newProfileNameInput = document.getElementById('new-profile-name');
+    const saveNewProfileBtn = document.getElementById('save-new-profile-btn');
+    const cancelNewProfileBtn = document.getElementById('cancel-new-profile-btn');
+    const deleteProfileBtn = document.getElementById('delete-profile-btn');
 
     const milkItems = [
         { name: "2litr green", hint: "Semi skimmed" },
@@ -165,23 +174,48 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // Load presets
-    let targetPresets = JSON.parse(localStorage.getItem('freshOrderTargets')) || {};
+    let profiles = JSON.parse(localStorage.getItem('freshOrderProfiles'));
+    if (!profiles) {
+        let legacyTargets = JSON.parse(localStorage.getItem('freshOrderTargets')) || {};
+        profiles = {
+            "default": { name: "Default / Weekday", targets: legacyTargets }
+        };
+        localStorage.setItem('freshOrderProfiles', JSON.stringify(profiles));
+    }
     
-    // Init presets if empty
-    [...milkItems, ...breadItems, ...vegItems, ...fruitItems].forEach(item => {
-        if (targetPresets[item.name] === undefined) {
-            targetPresets[item.name] = 0; // Default target
-        }
-    });
+    let activeProfileId = localStorage.getItem('freshOrderActiveProfile') || "default";
+    if (!profiles[activeProfileId]) activeProfileId = "default";
+    let editingProfileId = activeProfileId;
 
-    const stockState = {
+    function getTargetsForProfile(profileId) {
+        let t = profiles[profileId].targets;
+        [...milkItems, ...breadItems, ...vegItems, ...fruitItems].forEach(item => {
+            if (t[item.name] === undefined) t[item.name] = 0;
+        });
+        return t;
+    }
+    let targetPresets = getTargetsForProfile(activeProfileId);
+
+    // Load draft from previous session
+    let savedDraft = JSON.parse(localStorage.getItem('freshOrderDraft')) || {};
+
+    const stockState = savedDraft.stockState || {
         milk: {},
         bread: {},
         veg: {},
         fruit: {}
     };
 
-    let manualItemsList = [];
+    let manualItemsList = savedDraft.manualItemsList || [];
+
+    function saveDraft() {
+        localStorage.setItem('freshOrderDraft', JSON.stringify({
+            stockState,
+            manualItemsList,
+            shopName: shopNameInput.value,
+            extraNotes: extraNotesInput.value
+        }));
+    }
 
     function renderManualList() {
         manualListContainer.innerHTML = '';
@@ -211,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             removeBtn.addEventListener('click', () => {
                 manualItemsList = manualItemsList.filter(i => i.id !== item.id);
                 renderManualList();
+                saveDraft();
                 updatePreview();
             });
             
@@ -234,7 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!target || target <= 0) return;
 
             hasVisibleItems = true;
-            stockState[category][item.name] = ''; // init empty
+            if (stockState[category][item.name] === undefined) {
+                stockState[category][item.name] = ''; // init empty if no draft exists
+            }
 
             const div = document.createElement('div');
             div.className = 'item-row';
@@ -266,9 +303,25 @@ document.addEventListener('DOMContentLoaded', () => {
             input.placeholder = 'Stock';
             input.inputMode = 'numeric';
             input.pattern = '[0-9]*';
+            input.value = stockState[category][item.name];
             input.addEventListener('input', (e) => {
                 stockState[category][item.name] = e.target.value;
+                saveDraft();
                 updatePreview();
+            });
+            
+            // Enter key to jump to next input
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const inputs = Array.from(document.querySelectorAll('.stock-input-group input'));
+                    const index = inputs.indexOf(input);
+                    if (index > -1 && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        manualNameInput.focus();
+                    }
+                }
             });
             
             inputGroup.appendChild(badge);
@@ -284,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderSettingsList(items, container) {
+    function renderSettingsList(items, container, targets) {
         container.innerHTML = '';
         items.forEach(item => {
             const div = document.createElement('div');
@@ -309,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             input.min = '0';
             input.inputMode = 'numeric';
             input.pattern = '[0-9]*';
-            input.value = targetPresets[item.name];
+            input.value = targets[item.name];
             input.dataset.item = item.name;
             input.className = 'settings-input';
             
@@ -323,15 +376,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         orderDateInput.valueAsDate = today;
 
+        if (savedDraft.shopName !== undefined) shopNameInput.value = savedDraft.shopName;
+        if (savedDraft.extraNotes !== undefined) extraNotesInput.value = savedDraft.extraNotes;
+
+        renderManualList();
         renderMainList(milkItems, milkListContainer, 'milk');
         renderMainList(breadItems, breadListContainer, 'bread');
         renderMainList(vegItems, vegListContainer, 'veg');
         renderMainList(fruitItems, fruitListContainer, 'fruit');
-        
-        renderSettingsList(milkItems, settingsMilkList);
-        renderSettingsList(breadItems, settingsBreadList);
-        renderSettingsList(vegItems, settingsVegList);
-        renderSettingsList(fruitItems, settingsFruitList);
         
         [includeMilk, includeBread, includeVeg, includeFruit].forEach(cb => {
             if(cb) {
@@ -351,7 +403,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 manualNameInput.value = '';
                 manualQtyInput.value = '';
                 renderManualList();
+                saveDraft();
                 updatePreview();
+                manualNameInput.focus(); // Keep focus for rapid consecutive entry
+            }
+        });
+
+        // Rapid data entry for manual items
+        manualNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                manualQtyInput.focus();
+            }
+        });
+        manualQtyInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addManualBtn.click();
             }
         });
 
@@ -477,12 +545,40 @@ document.addEventListener('DOMContentLoaded', () => {
         messagePreview.value = generateMessage();
     }
 
+    function populateProfileSelect() {
+        presetProfileSelect.innerHTML = '';
+        for (let id in profiles) {
+            const option = document.createElement('option');
+            option.value = id;
+            option.innerText = profiles[id].name;
+            presetProfileSelect.appendChild(option);
+        }
+        presetProfileSelect.value = editingProfileId;
+        deleteProfileBtn.style.display = editingProfileId === 'default' ? 'none' : 'block';
+    }
+
+    function saveSettingsInputsToProfile(profileId) {
+        const inputs = document.querySelectorAll('.settings-input');
+        inputs.forEach(input => {
+            const itemName = input.dataset.item;
+            if (!profiles[profileId].targets) profiles[profileId].targets = {};
+            profiles[profileId].targets[itemName] = parseInt(input.value) || 0;
+        });
+    }
+
+    function renderSettingsForProfile(profileId) {
+        const targets = getTargetsForProfile(profileId);
+        renderSettingsList(milkItems, settingsMilkList, targets);
+        renderSettingsList(breadItems, settingsBreadList, targets);
+        renderSettingsList(vegItems, settingsVegList, targets);
+        renderSettingsList(fruitItems, settingsFruitList, targets);
+    }
+
     // Modal logic
     openSettingsBtn.addEventListener('click', () => {
-        renderSettingsList(milkItems, settingsMilkList);
-        renderSettingsList(breadItems, settingsBreadList);
-        renderSettingsList(vegItems, settingsVegList);
-        renderSettingsList(fruitItems, settingsFruitList);
+        editingProfileId = activeProfileId;
+        populateProfileSelect();
+        renderSettingsForProfile(editingProfileId);
         modal.classList.add('active');
     });
 
@@ -491,13 +587,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     saveSettingsBtn.addEventListener('click', () => {
-        const inputs = document.querySelectorAll('.settings-input');
-        inputs.forEach(input => {
-            const itemName = input.dataset.item;
-            targetPresets[itemName] = parseInt(input.value) || 0;
-        });
+        saveSettingsInputsToProfile(editingProfileId);
         
-        localStorage.setItem('freshOrderTargets', JSON.stringify(targetPresets));
+        activeProfileId = editingProfileId;
+        targetPresets = profiles[activeProfileId].targets;
+        
+        localStorage.setItem('freshOrderProfiles', JSON.stringify(profiles));
+        localStorage.setItem('freshOrderActiveProfile', activeProfileId);
         
         // Re-render main list to update badges
         renderMainList(milkItems, milkListContainer, 'milk');
@@ -509,9 +605,59 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('active');
     });
 
-    shopNameInput.addEventListener('input', updatePreview);
+    presetProfileSelect.addEventListener('change', (e) => {
+        saveSettingsInputsToProfile(editingProfileId);
+        editingProfileId = e.target.value;
+        renderSettingsForProfile(editingProfileId);
+        deleteProfileBtn.style.display = editingProfileId === 'default' ? 'none' : 'block';
+    });
+
+    newProfileBtn.addEventListener('click', () => {
+        newProfileGroup.style.display = 'flex';
+        presetProfileSelect.style.display = 'none';
+        newProfileBtn.style.display = 'none';
+        newProfileNameInput.focus();
+    });
+
+    cancelNewProfileBtn.addEventListener('click', () => {
+        newProfileGroup.style.display = 'none';
+        presetProfileSelect.style.display = 'block';
+        newProfileBtn.style.display = 'block';
+        newProfileNameInput.value = '';
+    });
+
+    saveNewProfileBtn.addEventListener('click', () => {
+        const name = newProfileNameInput.value.trim();
+        if (name) {
+            saveSettingsInputsToProfile(editingProfileId);
+            
+            const id = 'profile_' + Date.now();
+            profiles[id] = { name: name, targets: {} };
+            getTargetsForProfile(id); // Initialize
+            
+            editingProfileId = id;
+            populateProfileSelect();
+            renderSettingsForProfile(editingProfileId);
+            
+            newProfileGroup.style.display = 'none';
+            presetProfileSelect.style.display = 'block';
+            newProfileBtn.style.display = 'block';
+            newProfileNameInput.value = '';
+        }
+    });
+
+    deleteProfileBtn.addEventListener('click', () => {
+        if (editingProfileId !== 'default' && confirm(`Are you sure you want to delete the "${profiles[editingProfileId].name}" profile?`)) {
+            delete profiles[editingProfileId];
+            editingProfileId = 'default';
+            populateProfileSelect();
+            renderSettingsForProfile(editingProfileId);
+        }
+    });
+
+    shopNameInput.addEventListener('input', () => { updatePreview(); saveDraft(); });
     orderDateInput.addEventListener('input', updatePreview);
-    extraNotesInput.addEventListener('input', updatePreview);
+    extraNotesInput.addEventListener('input', () => { updatePreview(); saveDraft(); });
 
     copyBtn.addEventListener('click', () => {
         const msg = generateMessage();
@@ -536,6 +682,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const encodedMsg = encodeURIComponent(msg);
         const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMsg}`;
         window.open(whatsappUrl, '_blank');
+    });
+
+    clearBtn.addEventListener('click', () => {
+        if (confirm("Are you sure you want to clear the current order?")) {
+            // Clear stock inputs in DOM
+            const stockInputs = document.querySelectorAll('.stock-input-group input');
+            stockInputs.forEach(input => input.value = '');
+            
+            // Clear stock state
+            ['milk', 'bread', 'veg', 'fruit'].forEach(category => {
+                for (let key in stockState[category]) {
+                    stockState[category][key] = '';
+                }
+            });
+
+            // Clear manual items
+            manualItemsList = [];
+            renderManualList();
+            manualNameInput.value = '';
+            manualQtyInput.value = '';
+
+            // Reset extra notes and order date
+            extraNotesInput.value = '';
+            orderDateInput.valueAsDate = new Date();
+
+            // Reset section checkboxes to default (checked)
+            [includeMilk, includeBread, includeVeg, includeFruit].forEach(cb => {
+                if (cb && !cb.checked) {
+                    cb.click(); // Triggers event listener to update visibility
+                }
+            });
+
+            localStorage.removeItem('freshOrderDraft');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            updatePreview();
+        }
     });
 
     init();
